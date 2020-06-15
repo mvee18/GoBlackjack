@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -8,18 +9,30 @@ import (
 	"time"
 )
 
+var ErrGenerateCard = errors.New("Could not generate the card.")
+
 type card struct {
 	suit  string
 	value string
 }
 
-func generateCard(suit string, value string) card {
-	c := card{suit: suit}
+var AllCards = make([]card,0)
+
+func generateCard(suit string, value string) (c card) {
+	c = card{suit: suit}
 	c.value = value
+
+	_, b := SeeIfCardGenerated(AllCards, c)
+	switch b {
+	case true:
+		c = generateCard(suitValue(), cardValue())
+		return c
+	}
+	AllCards = append(AllCards, c)
 	return c
 }
 
-func cardvalue() string {
+func cardValue() string {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 	value := r1.Intn(13)
@@ -50,7 +63,7 @@ func convertValue(i int) (paint string, err error) {
 	}
 }
 
-func suitvalue() (s string) {
+func suitValue() (s string) {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 	suit := r1.Intn(3)
@@ -74,12 +87,24 @@ func suitvalue() (s string) {
 	}
 }
 
-func generateHand() {
-	hand := make([]card, 2)
-	hand[0] = generateCard(suitvalue(), cardvalue())
+func generateHand() (hand []card, err error) {
+	hand = make([]card, 2)
+	hand[0] = generateCard(suitValue(), cardValue())
 	time.Sleep(100 * time.Millisecond)
-	hand[1] = generateCard(suitvalue(), cardvalue())
+	hand[1] = generateCard(suitValue(), cardValue())
 	fmt.Printf("Your hand is: %v, %v", hand[0], hand[1])
+	return hand, err
+}
+
+
+
+func SeeIfCardGenerated (s []card, c card) (int, bool) {
+	for i, item := range s {
+		if item == c {
+			return i, true
+		}
+	}
+	return -1, false
 }
 
 func main() {
