@@ -13,7 +13,6 @@ func TestGenerateCard(t *testing.T) {
 			if got != want {
 				t.Errorf("got %v want %v", got, want)
 			}
-			fmt.Printf("%v\n", AllCards)
 		})
 
 		t.Run("test if card was appended", func(t *testing.T) {
@@ -23,7 +22,6 @@ func TestGenerateCard(t *testing.T) {
 			if got != want {
 				t.Errorf("got %v, want %v", got, want)
 			}
-			fmt.Printf("%v\n", AllCards)
 		})
 
 		t.Run("see if it can stop the same card from being generated", func(t *testing.T) {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"math/rand"
 	"strconv"
@@ -92,11 +91,8 @@ func generateHand() (hand []card, err error) {
 	hand[0] = generateCard(suitValue(), cardValue())
 	time.Sleep(100 * time.Millisecond)
 	hand[1] = generateCard(suitValue(), cardValue())
-	fmt.Printf("Your hand is: %v, %v", hand[0], hand[1])
 	return hand, err
 }
-
-
 
 func SeeIfCardGenerated (s []card, c card) (int, bool) {
 	for i, item := range s {
@@ -108,5 +104,5 @@ func SeeIfCardGenerated (s []card, c card) (int, bool) {
 }
 
 func main() {
-	generateHand()
+	GameLogic()
 }
