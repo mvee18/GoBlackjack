@@ -38,7 +38,7 @@ func DealerHand() (hand []card, err error) {
 	if err != nil {
 		return DealerHand, ErrPlayerHand
 	}
-//	fmt.Printf("The Dealer's Hand is {X X}, %v\n", DealerHand[1])
+	//	fmt.Printf("The Dealer's Hand is {X X}, %v\n", DealerHand[1])
 	fmt.Printf("DEBUG: The dealer's hand is %v, %v\n", DealerHand[0], DealerHand[1])
 	return DealerHand, err
 }
@@ -89,7 +89,7 @@ func paintConverter(s string) (int, bool) {
 
 // The player should only be able to affect their own hand.
 // TODO: The player should be able to choose a bet amount after seeing the cards.
-func UserActions(playerhand []card) ([]card, int, int, error){
+func UserActions(playerhand []card) ([]card, int, int, error) {
 	println("\nWhat will you do?")
 	println("The options are: Hit or Stay.")
 
@@ -100,11 +100,11 @@ func UserActions(playerhand []card) ([]card, int, int, error){
 		_, _, _, _ = UserActions(playerhand)
 	}
 	input = strings.TrimSuffix(input, LineBreak)
-//	input := "Stay"
+	//	input := "Stay"
 	if input == "Hit" {
 		newhand, total, ace, err := Hit(playerhand)
 		if err != nil {
-//			PotResolution()
+			//			PotResolution()
 			fmt.Printf("%v", ErrHandBust)
 		}
 		fmt.Printf("Your new hand is %v\n", newhand)
@@ -123,8 +123,10 @@ func UserActions(playerhand []card) ([]card, int, int, error){
 }
 
 func DealerLogic(dHand []card, dTotal int, dAce int, pTotal int, pAce int) ([]card, int, int) {
-	fmt.Printf("Dealer: %d, %d. Player: %d, %d\n",dTotal,dAce,pTotal,pAce)
-	if dTotal > pTotal && dAce > pAce && (dAce <= 21 || dTotal <= 21){
+	fmt.Printf("Dealer: %d, %d. Player: %d, %d\n", dTotal, dAce, pTotal, pAce)
+	if dTotal > pTotal && dAce > pAce && (dAce <= 21 || dTotal <= 21) {
+		fmt.Println("The dealer elects to stay.")
+		fmt.Printf("The dealer's hand is %v\n", dHand)
 		dhand, dtotal, dace, err := Stay(dHand)
 		if err != nil {
 			fmt.Printf("%v", ErrHandBust)
@@ -133,7 +135,9 @@ func DealerLogic(dHand []card, dTotal int, dAce int, pTotal int, pAce int) ([]ca
 		return dhand, dtotal, dace
 
 	} else {
+		fmt.Println("The dealer elects to hit.")
 		newdhand, dtotal, dace, err := Hit(dHand)
+		fmt.Printf("The dealer's new hand is %v\n", newdhand)
 		if err != nil {
 			fmt.Printf("The dealer's hand was %v\n", dHand)
 			PotResolution(ErrDealerBust)
@@ -142,8 +146,9 @@ func DealerLogic(dHand []card, dTotal int, dAce int, pTotal int, pAce int) ([]ca
 		return newdhand, dtotal, dace
 	}
 }
+
 // TODO: Resolve pot loss/win and add/subtract the bet amount from the player's money.
-func PotResolution (err error) {
+func PotResolution(err error) {
 	if err == ErrDealerBust {
 		PlayerMoney += PotValue
 		fmt.Printf("The dealer loses. You win the pot.")
@@ -171,14 +176,19 @@ func PotMoney() Money {
 	bet, err := strconv.Atoi(input)
 	if Money(bet) <= PlayerMoney {
 		PlayerMoney -= Bet
-		PotValue += Money(bet * 3/2)
+		PotValue += Money(bet * 3 / 2)
 		fmt.Printf("The pot value is now %v\n", PotValue)
 		return PotValue
-	} else {
+	} else if Money(bet) > PlayerMoney {
 		println("You cannot bet more money than you have! Try again.")
 		PotMoney()
 		return PotValue
+	} else if bet == 0 {
+		println("You must be some amount of money to play. Try again.")
+		PotMoney()
+		return PotValue
 	}
+	return PotValue
 }
 
 func GameLogic() {

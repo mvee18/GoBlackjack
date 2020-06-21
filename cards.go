@@ -15,7 +15,7 @@ type card struct {
 	value string
 }
 
-var AllCards = make([]card,0)
+var AllCards = make([]card, 0)
 var ErrPlayerBusted = errors.New("The hand has exceeded 21. Hand lost.")
 var ErrConvValue = errors.New("could not convert the value")
 
@@ -36,7 +36,7 @@ func generateCard(suit string, value string) (c card) {
 func cardValue() string {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
-	value := r1.Intn(13 - 1) + 1
+	value := r1.Intn(13-1) + 1
 	f, err := convertValue(value)
 	if err != nil {
 		log.Fatal("Could not convert the value.")
@@ -96,7 +96,7 @@ func generateHand() (hand []card, err error) {
 	return hand, err
 }
 
-func SeeIfCardGenerated (s []card, c card) (int, bool) {
+func SeeIfCardGenerated(s []card, c card) (int, bool) {
 	for i, item := range s {
 		if item == c {
 			return i, true
@@ -105,7 +105,7 @@ func SeeIfCardGenerated (s []card, c card) (int, bool) {
 	return -1, false
 }
 
-func Hit (c []card) ([]card, int, int, error){
+func Hit(c []card) ([]card, int, int, error) {
 	newcard := generateCard(suitValue(), cardValue())
 	c = append(c, newcard)
 	total, ace, bust := determineValue(c)
