@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var ErrGenerateCard = errors.New("Could not generate the card.")
+// var ErrGenerateCard = errors.New("Could not generate the card.")
 
 type card struct {
 	suit  string
@@ -16,6 +16,8 @@ type card struct {
 }
 
 var AllCards = make([]card,0)
+var ErrPlayerBusted = errors.New("The hand has exceeded 21. Hand lost.")
+var ErrConvValue = errors.New("could not convert the value")
 
 func generateCard(suit string, value string) (c card) {
 	c = card{suit: suit}
@@ -34,7 +36,7 @@ func generateCard(suit string, value string) (c card) {
 func cardValue() string {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
-	value := r1.Intn(13)
+	value := r1.Intn(13 - 1) + 1
 	f, err := convertValue(value)
 	if err != nil {
 		log.Fatal("Could not convert the value.")
@@ -44,21 +46,21 @@ func cardValue() string {
 
 func convertValue(i int) (paint string, err error) {
 	switch i {
-	case 0:
+	case 1:
 		paint := "A"
-		return paint, err
+		return paint, nil
 	case 11:
 		paint := "J"
-		return paint, err
+		return paint, nil
 	case 12:
 		paint := "Q"
-		return paint, err
+		return paint, nil
 	case 13:
 		paint := "K"
-		return paint, err
+		return paint, nil
 	default:
 		paint := strconv.Itoa(i)
-		return paint, err
+		return paint, nil
 	}
 }
 
@@ -101,6 +103,24 @@ func SeeIfCardGenerated (s []card, c card) (int, bool) {
 		}
 	}
 	return -1, false
+}
+
+func Hit (c []card) ([]card, int, int, error){
+	newcard := generateCard(suitValue(), cardValue())
+	c = append(c, newcard)
+	total, ace, bust := determineValue(c)
+	if bust != nil {
+		return c, total, ace, ErrPlayerBusted
+	}
+	return c, total, ace, nil
+}
+
+func Stay(c []card) ([]card, int, int, error) {
+	total, ace, bust := determineValue(c)
+	if bust != nil {
+		return c, total, ace, ErrHandBust
+	}
+	return c, total, ace, nil
 }
 
 func main() {
