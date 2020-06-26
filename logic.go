@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var ErrPlayerHand = errors.New("could not generate player hand")
@@ -104,8 +105,8 @@ func UserActions(playerhand []card) ([]card, int, int, error) {
 	if input == "Hit" {
 		newhand, total, ace, err := Hit(playerhand)
 		if err != nil {
-			//			PotResolution()
-			fmt.Printf("%v", ErrHandBust)
+			fmt.Printf("Your hand has exceed 21.\n")
+			PotResolution(ErrPlayerLoss)
 		}
 		fmt.Printf("Your new hand is %v\n", newhand)
 		fmt.Printf("Your new total is %d or %d\n", total, ace)
@@ -137,9 +138,9 @@ func DealerLogic(dHand []card, dTotal int, dAce int, pTotal int, pAce int) ([]ca
 	} else {
 		fmt.Println("The dealer elects to hit.")
 		newdhand, dtotal, dace, err := Hit(dHand)
+		time.Sleep(1 * time.Second)
 		fmt.Printf("The dealer's new hand is %v\n", newdhand)
 		if err != nil {
-			fmt.Printf("The dealer's hand was %v\n", dHand)
 			PotResolution(ErrDealerBust)
 		}
 		newdhand, dtotal, dace = DealerLogic(newdhand, dtotal, dace, pTotal, pAce)
@@ -165,8 +166,8 @@ func PotMoney() Money {
 	if PlayerMoney <= 0 {
 		log.Fatal(ErrPlayerOutOfMoney)
 	}
-	fmt.Printf("Your current money is %v\n", PlayerMoney)
-	fmt.Printf("How much will you bet?")
+	fmt.Printf("\nYour current money is %v\n", PlayerMoney)
+	fmt.Printf("How much will you bet?\n")
 	PotReader := bufio.NewReader(os.Stdin)
 	input, err := PotReader.ReadString('\n')
 	if err != nil {
