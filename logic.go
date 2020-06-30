@@ -40,7 +40,7 @@ func DealerHand() (hand []card, err error) {
 		return DealerHand, ErrPlayerHand
 	}
 	//	fmt.Printf("The Dealer's Hand is {X X}, %v\n", DealerHand[1])
-	fmt.Printf("DEBUG: The dealer's hand is %v, %v\n", DealerHand[0], DealerHand[1])
+	fmt.Printf("The dealer's hand is {X, X}, %v\n", DealerHand[1])
 	return DealerHand, err
 }
 
@@ -92,7 +92,8 @@ func paintConverter(s string) (int, bool) {
 // TODO: The player should be able to choose a bet amount after seeing the cards.
 func UserActions(playerhand []card) ([]card, int, int, error) {
 	println("\nWhat will you do?")
-	println("The options are: Hit or Stay.")
+	println("The options are: Hit, Stay, or Double Down (DD)")
+	doubleDown := false
 
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
@@ -101,7 +102,7 @@ func UserActions(playerhand []card) ([]card, int, int, error) {
 		_, _, _, _ = UserActions(playerhand)
 	}
 	input = strings.TrimSuffix(input, LineBreak)
-	//	input := "Stay"
+
 	if input == "Hit" {
 		newhand, total, ace, err := Hit(playerhand)
 		if err != nil {
@@ -112,20 +113,30 @@ func UserActions(playerhand []card) ([]card, int, int, error) {
 		fmt.Printf("Your new total is %d or %d\n", total, ace)
 		UserActions(newhand)
 		return newhand, total, ace, nil
-	}
-	if input == "Stay" {
+
+	} else if input == "Stay" {
 		hand, total, ace, err := Stay(playerhand)
 		if err != nil {
 			fmt.Printf("%v", ErrHandBust)
 		}
 		return hand, total, ace, nil
+
+	} else if (input == "Double Down" || input == "DD") && doubleDown == false {
+		DoubleDown()
+		doubleDown = true
+		UserActions(playerhand)
+
+	} else {
+		fmt.Printf("There was an error reading your input. Try again.")
+		UserActions(playerhand)
 	}
 	return nil, 0, 0, nil
+
 }
 
 func DealerLogic(dHand []card, dTotal int, dAce int, pTotal int, pAce int) ([]card, int, int) {
 	fmt.Printf("Dealer: %d, %d. Player: %d, %d\n", dTotal, dAce, pTotal, pAce)
-	if dTotal > pTotal && dAce > pAce && (dAce <= 21 || dTotal <= 21) {
+	if dTotal >= pTotal && dAce >= pAce && (dAce <= 21 || dTotal <= 21) {
 		fmt.Println("The dealer elects to stay.")
 		fmt.Printf("The dealer's hand is %v\n", dHand)
 		dhand, dtotal, dace, err := Stay(dHand)
@@ -192,6 +203,19 @@ func PotMoney() Money {
 	return PotValue
 }
 
+func Split(c []card) {
+	if c[0] == c[1] {
+		fmt.Println("You also have the option to split.")
+	}
+}
+
+func DoubleDown() {
+	PlayerMoney -= PotValue * 2/3
+	PotValue = PotValue * 2
+	fmt.Printf("Your new balance is %v\n", PlayerMoney)
+	fmt.Printf("The pot is now %v\n", PotValue)
+}
+
 func GameLogic() {
 	PotMoney()
 
@@ -213,7 +237,7 @@ func GameLogic() {
 
 	_, PTotal, PAce, UserErr := UserActions(phand)
 	if UserErr != nil {
-		log.Fatal("error in user actions.")
+		fmt.Println("There was an error reading your input, try again.")
 	}
 
 	NewDHand, NewDTotal, NewDAce := DealerLogic(dhand, dTotal, dAce, PTotal, PAce)

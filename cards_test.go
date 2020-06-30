@@ -87,6 +87,9 @@ func TestUserActions(t *testing.T) {
 	if err != nil {
 		t.Errorf("got an error, but did not expect one.")
 	}
+	t.Run("testing if double down works", func(t *testing.T) {
+		newhand, total, ace, err := UserActions([]card{{"Heart", "10"}, {"Club", "10"}})
+	})
 }
 
 func TestDealerLogic(t *testing.T) {
