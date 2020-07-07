@@ -263,3 +263,6 @@ func GameLogic() {
 	NewDHand, NewDTotal, NewDAce := DealerLogic(dhand, dTotal, dAce, PTotal, PAce)
 	fmt.Printf("The dealer's hand is %v, with a total of %d or %d\n", NewDHand, NewDTotal, NewDAce)
 }
+
+//TODO: Add insurance feature.
+//TODO: Add split feature.
