@@ -17,6 +17,7 @@ var ErrHandBust = errors.New("hand value over 21\n")
 var ErrDealerBust = errors.New("The dealer has busted. You win the pot.\n")
 var ErrPlayerLoss = errors.New("The dealer wins. You lose your bet.\n")
 var ErrPlayerOutOfMoney = errors.New("\nYou are out of money. Game over.\n")
+var ErrNotEnoughMoney = errors.New("\nYou do not have enough money to double down.\n")
 
 type Pot float64
 type Money float64
@@ -89,7 +90,6 @@ func paintConverter(s string) (int, bool) {
 }
 
 // The player should only be able to affect their own hand.
-// TODO: The player should be able to choose a bet amount after seeing the cards.
 func UserActions(playerhand []card) ([]card, int, int, error) {
 	println("\nWhat will you do?")
 	println("The options are: Hit, Stay, or Double Down (DD)")
@@ -122,10 +122,25 @@ func UserActions(playerhand []card) ([]card, int, int, error) {
 		return hand, total, ace, nil
 
 	} else if (input == "Double Down" || input == "DD") && doubleDown == false {
-		DoubleDown()
+		dderror := DoubleDown()
+		if dderror != nil {
+			fmt.Println(dderror)
+			UserActions(playerhand)
+		}
 		doubleDown = true
-		UserActions(playerhand)
+		newhand, total, ace, err := Hit(playerhand)
+		if err != nil {
+			fmt.Printf("Your hand has exceed 21.\n")
+			PotResolution(ErrPlayerLoss)
+		}
+		fmt.Printf("Your new hand is %v\n", newhand)
+		fmt.Printf("Your new total is %d or %d\n", total, ace)
+		UserActions(newhand)
+		return newhand, total, ace, nil
 
+	} else if playerhand[0].value == playerhand[1].value {
+		Split(playerhand)
+		
 	} else {
 		fmt.Printf("There was an error reading your input. Try again.")
 		UserActions(playerhand)
@@ -166,7 +181,6 @@ func PotResolution(err error) {
 		fmt.Printf("The dealer loses. You win the pot.")
 		GameLogic()
 	} else if err == ErrPlayerLoss {
-		PlayerMoney -= PotValue
 		fmt.Printf("%v", ErrPlayerLoss)
 		GameLogic()
 	}
@@ -185,17 +199,19 @@ func PotMoney() Money {
 		fmt.Println("There was an error reading your input. Please try again.")
 	}
 	input = strings.TrimSuffix(input, LineBreak)
-	bet, err := strconv.Atoi(input)
-	if Money(bet) <= PlayerMoney {
+	bet, _ := strconv.Atoi(input)
+	Bet = Money(bet)
+	if Bet <= PlayerMoney {
 		PlayerMoney -= Bet
-		PotValue += Money(bet * 3 / 2)
+		PotValue += Bet * 3 / 2
+		fmt.Printf("Your balance is now %v\n", PlayerMoney)
 		fmt.Printf("The pot value is now %v\n", PotValue)
 		return PotValue
-	} else if Money(bet) > PlayerMoney {
+	} else if Bet > PlayerMoney {
 		println("You cannot bet more money than you have! Try again.")
 		PotMoney()
 		return PotValue
-	} else if bet == 0 {
+	} else if Bet == 0 {
 		println("You must be some amount of money to play. Try again.")
 		PotMoney()
 		return PotValue
@@ -204,16 +220,20 @@ func PotMoney() Money {
 }
 
 func Split(c []card) {
-	if c[0] == c[1] {
+	if c[0].value == c[1].value {
 		fmt.Println("You also have the option to split.")
 	}
 }
 
-func DoubleDown() {
+func DoubleDown() error {
+	if PlayerMoney < PotValue * 2/3 {
+		return ErrNotEnoughMoney
+	}
 	PlayerMoney -= PotValue * 2/3
 	PotValue = PotValue * 2
 	fmt.Printf("Your new balance is %v\n", PlayerMoney)
 	fmt.Printf("The pot is now %v\n", PotValue)
+	return nil
 }
 
 func GameLogic() {
